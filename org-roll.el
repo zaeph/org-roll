@@ -189,7 +189,7 @@ This is intended to work as a :before hook to *-return commands."
     (apply #'org-return args)))
 
 (define-minor-mode zp/org-roll-mode
-  "Allow inline processing of dice-rolls instructions."
+  "Allow inline processing of dice-roll instructions."
   :lighter " roll"
   :keymap (let ((map (make-sparse-keymap)))
             (define-key map [remap org-return] 'zp/org-roll-org-return)
