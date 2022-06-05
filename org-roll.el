@@ -86,7 +86,7 @@
                 "\n")
      "\n")))
 
-(defun zp/org-roll--process (str)
+(defun zp/org-roll--process-instructions (str)
   "Process dice-roll instructions from STR."
   (thread-first str
       (zp/org-roll--parse)
@@ -122,7 +122,7 @@ malformed."
         (end (line-end-position)))
     (if-let ((instructions
               (zp/org-roll--extract-instructions (cons beg end))))
-        (let ((string (zp/org-roll--process instructions)))
+        (let ((string (zp/org-roll--process-instructions instructions)))
           (kill-region beg end)
           (insert string)
           t)
