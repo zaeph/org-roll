@@ -78,9 +78,10 @@ formatter."
                       (processor (match-string 3 str))
                       (rolls (cl-loop for i from 1 to number
                                       collect (+ (random range) 1)))
-                      (rolls-processed (if processor
-                                           (zp/org-roll--process-rolls rolls processor)
-                                         (list rolls))))
+                      (rolls-processed
+                       (if processor
+                           (zp/org-roll--process-rolls rolls processor)
+                         (list rolls))))
                  ;; (debug name number processor)
                  (setq max-name-length (max max-name-length
                                             (length name)))
@@ -96,36 +97,39 @@ formatter."
 
 (defun zp/org-roll--format (instructions)
   "Format dice-roll INSTRUCTIONS."
-  (pcase-let* ((`(,instructions ,metadata) instructions)
-               ((map :max-name-length
-                     :rolls-total)
-                metadata))
+  (pcase-let*
+      ((`(,instructions ,metadata) instructions)
+       ((map :max-name-length
+             :rolls-total)
+        metadata)
+       (instructions-formatted
+        (mapcar
+         (lambda (instruction)
+           (pcase-let* ((`(,name (,rolls . ,extra-info) ,processor)
+                         instruction))
+             (concat
+              ;; Main instruction
+              (format (format "- %%-%ss :: [ %%s ]"
+                              (number-to-string max-name-length))
+                      name
+                      (mapconcat #'identity
+                                 (mapcar #'number-to-string rolls)
+                                 ", "))
+              ;; Extra info
+              (pcase processor
+                ("+"
+                 (format (format "\n  %%-%ss :: %%s"
+                                 (number-to-string max-name-length))
+                         "SUM"
+                         (number-to-string (car extra-info))))))))
+         instructions)))
     (format
      "Roll%s:\n%s\n"
      ;; Handle plural
      (if (> rolls-total 1) "s" "")
-     (mapconcat
-      #'identity
-      (mapcar
-       (lambda (instruction)
-         (pcase-let* ((`(,name (,rolls . ,extra-info) ,processor) instruction))
-           (concat
-            ;; Main instruction
-            (format (format "- %%-%ss :: [ %%s ]"
-                            (number-to-string max-name-length))
-                    name
-                    (mapconcat #'identity
-                               (mapcar #'number-to-string rolls)
-                               ", "))
-            ;; Extra info
-            (pcase processor
-              ("+"
-               (format (format "\n  %%-%ss :: %%s"
-                               (number-to-string max-name-length))
-                       "SUM"
-                       (number-to-string (car extra-info))))))))
-       instructions)
-      "\n"))))
+     (mapconcat #'identity
+                instructions-formatted
+                "\n"))))
 
 (defun zp/org-roll--process-instructions (str)
   "Process dice-roll instructions from STR."
