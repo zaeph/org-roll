@@ -42,17 +42,19 @@
          (instructions
           (mapcar (lambda (str)
                     (save-match-data
-                      (string-match "\\([0-9]+\\)d\\([0-9]+\\)" str)
+                      (string-match "\\([0-9]+\\)d\\([0-9]+\\)\\([><+-]\\)?" str)
                       (let* ((name (match-string 0 str))
                              (number (string-to-number (match-string 1 str)))
                              (range (string-to-number (match-string 2 str)))
+                             (func (match-string 3 str))
                              (rolls (cl-loop for i from 1 to number
                                              collect (+ (random range) 1))))
+                        ;; (debug name number func)
                         (setq max-name-length (max max-name-length
                                                    (length name)))
                         (unless (> rolls-total 1)
                           (setq rolls-total (+ rolls-total number)))
-                        (list name rolls))))
+                        (list name rolls func))))
                   instructions-str)))
     (list instructions
           ;; Metadata
@@ -101,7 +103,7 @@ Otherwise, return nil."
         (goto-char beg)
         (condition-case nil
             (progn (re-search-forward
-                    (concat "^ *\\([0-9]+d[0-9]+"
+                    (concat "^ *\\([0-9]+d[0-9]+[<>+]?"
                             "\\([, ]+ *\\|$\\)+\\)+$")
                     end)
                    (setq match? t))
