@@ -160,8 +160,8 @@ Otherwise, return nil."
 (defun zp/org-roll-replace-line (&optional arg)
   "Replace the dice-roll instructions in the current line.
 Return t if the line has been replaced.
-When called interactively, return an error if the line is
-malformed."
+When called interactively with ARG, return an error if the line
+is malformed."
   (interactive "p")
   (let ((interactive? arg)
         (beg (line-beginning-position))
