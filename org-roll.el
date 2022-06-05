@@ -101,31 +101,31 @@ formatter."
                      :rolls-total)
                 metadata))
     (format
-     "Roll%s:\n%s%s"
+     "Roll%s:\n%s\n"
      ;; Handle plural
      (if (> rolls-total 1) "s" "")
-     (mapconcat #'identity
-                (mapcar
-                 (lambda (instruction)
-                   (pcase-let* ((`(,name (,rolls . ,extra-info) ,processor) instruction))
-                     (concat
-                      ;; Main instruction
-                      (format (format "- %%-%ss :: [ %%s ]"
-                                      (number-to-string max-name-length))
-                              name
-                              (mapconcat #'identity
-                                         (mapcar #'number-to-string rolls)
-                                         ", "))
-                      ;; Extra info
-                      (pcase processor
-                        ("+"
-                         (format (format "\n  %%-%ss :: %%s"
-                                         (number-to-string max-name-length))
-                                 "SUM"
-                                 (number-to-string (car extra-info))))))))
-                 instructions)
-                "\n")
-     "\n")))
+     (mapconcat
+      #'identity
+      (mapcar
+       (lambda (instruction)
+         (pcase-let* ((`(,name (,rolls . ,extra-info) ,processor) instruction))
+           (concat
+            ;; Main instruction
+            (format (format "- %%-%ss :: [ %%s ]"
+                            (number-to-string max-name-length))
+                    name
+                    (mapconcat #'identity
+                               (mapcar #'number-to-string rolls)
+                               ", "))
+            ;; Extra info
+            (pcase processor
+              ("+"
+               (format (format "\n  %%-%ss :: %%s"
+                               (number-to-string max-name-length))
+                       "SUM"
+                       (number-to-string (car extra-info))))))))
+       instructions)
+      "\n"))))
 
 (defun zp/org-roll--process-instructions (str)
   "Process dice-roll instructions from STR."
