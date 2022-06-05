@@ -118,9 +118,9 @@ formatter."
               ;; Extra info
               (pcase processor
                 ("+"
-                 (format (format "\n  %%-%ss :: %%s"
+                 (format (format "\n  %%%ss :: %%s"
                                  (number-to-string max-name-length))
-                         "SUM"
+                         "Σ"
                          (number-to-string (car extra-info))))))))
          instructions)))
     (format
