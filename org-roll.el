@@ -34,6 +34,32 @@
 (require 'org)
 (require 'map)
 
+(defvar zp/org-roll-processors
+  "List of available dice-roll processors."
+  ;; TODO: Make the regexps use this
+  (list "<"
+        ">"
+        "+"))
+
+(defun zp/org-roll--process-rolls (rolls processor)
+  "Process ROLLS with PROCESSOR.
+ROLLS is a list; PROCESSOR is a string.
+Return either a list of rolls, or a list of the format ( rolls
+extra-info ) where extra-info contains extra information for the
+formatter."
+  (pcase processor
+    ("<"
+     (list (seq-sort #'< rolls)))
+    (">"
+     (list (seq-sort #'> rolls)))
+    ("+"
+     (list rolls
+           (format "SUM :: %s"
+                   (thread-first (apply #'+ rolls )
+                                 (number-to-string )))))
+    (_
+     (error "Unrecognized processor"))))
+
 (defun zp/org-roll--parse (str)
   "Parse dice-roll instructions in STR."
   (let* ((instructions-str (split-string str "[, \n]+ *" t))
@@ -42,19 +68,20 @@
          (instructions
           (mapcar (lambda (str)
                     (save-match-data
-                      (string-match "\\([0-9]+\\)d\\([0-9]+\\)\\([><+-]\\)?" str)
+                      ;; TODO; Rewrite with rx for readability
+                      (string-match "\\([0-9]+\\)d\\([0-9]+\\)\\([><+]\\)?" str)
                       (let* ((name (match-string 0 str))
                              (number (string-to-number (match-string 1 str)))
                              (range (string-to-number (match-string 2 str)))
-                             (func (match-string 3 str))
+                             (processor (match-string 3 str))
                              (rolls (cl-loop for i from 1 to number
                                              collect (+ (random range) 1))))
-                        ;; (debug name number func)
+                        ;; (debug name number processor)
                         (setq max-name-length (max max-name-length
                                                    (length name)))
                         (unless (> rolls-total 1)
                           (setq rolls-total (+ rolls-total number)))
-                        (list name rolls func))))
+                        (list name rolls processor))))
                   instructions-str)))
     (list instructions
           ;; Metadata
@@ -75,13 +102,18 @@
      (mapconcat #'identity
                 (mapcar
                  (lambda (instruction)
-                   (pcase-let ((`(,name ,rolls) instruction))
-                     (format (format "- %%-%ss :: [ %%s ]"
+                   (pcase-let* ((`(,name ,rolls ,processor) instruction)
+                                (`(,rolls ,extra-info)
+                                 (if processor
+                                     (zp/org-roll--process-rolls rolls processor)
+                                   rolls)))
+                     (format (format "- %%-%ss :: [ %%s ]%%s"
                                      (number-to-string max-name-length))
                              name
                              (mapconcat #'identity
                                         (mapcar #'number-to-string rolls)
-                                        ", "))))
+                                        ", ")
+                             (format "\n  - %s" extra-info))))
                  instructions)
                 "\n")
      "\n")))
@@ -102,6 +134,7 @@ Otherwise, return nil."
             (end (cdr region)))
         (goto-char beg)
         (condition-case nil
+            ;; TODO; Rewrite with rx for readability
             (progn (re-search-forward
                     (concat "^ *\\([0-9]+d[0-9]+[<>+]?"
                             "\\([, ]+ *\\|$\\)+\\)+$")
