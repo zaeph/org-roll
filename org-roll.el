@@ -181,6 +181,9 @@ This is intended to work as a :before hook to *-return commands."
     (zp/org-roll-replace-line)))
 
 (defun zp/org-roll-org-return (&rest args)
+  "Wrapper for `org-return'.
+Prepend `zp/org-roll-replace-line-maybe' to `org-return' and
+forwards the same ARGS."
   (interactive "i\nP\np")
   (if (zp/org-roll-replace-line-maybe)
       (org-return-and-maybe-indent)
