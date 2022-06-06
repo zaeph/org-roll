@@ -112,9 +112,8 @@ formatter."
               (format (format "- %%-%ss :: [ %%s ]"
                               (number-to-string max-name-length))
                       name
-                      (mapconcat #'identity
-                                 (mapcar #'number-to-string rolls)
-                                 ", "))
+                      (string-join (mapcar #'number-to-string rolls)
+                                   ", "))
               ;; Extra info
               (pcase processor
                 ("+"
@@ -127,9 +126,8 @@ formatter."
      "Roll%s:\n%s\n"
      ;; Handle plural
      (if (> rolls-total 1) "s" "")
-     (mapconcat #'identity
-                instructions-formatted
-                "\n"))))
+     (string-join instructions-formatted
+                  "\n"))))
 
 (defun zp/org-roll--process-instructions (str)
   "Process dice-roll instructions from STR."
