@@ -112,8 +112,7 @@ formatter."
               (format (format "- %%-%ss :: [ %%s ]"
                               (number-to-string max-name-length))
                       name
-                      (string-join (mapcar #'number-to-string rolls)
-                                   ", "))
+                      (mapconcat #'number-to-string rolls ", "))
               ;; Extra info
               (pcase processor
                 ("+"
