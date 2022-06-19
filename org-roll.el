@@ -34,29 +34,38 @@
 (require 'org)
 (require 'map)
 
-(defvar zp/org-roll-processors
-  "List of available dice-roll processors."
-  ;; TODO: Make the regexps use this
-  (list "<"
-        ">"
-        "+"))
+(defgroup org-roll ()
+  "Roll dice in org-mode."
+  :group 'org
+  :prefix "org-roll-"
+  :link '(url-link :tag "Homepage" "https://github.com/zaeph/org-roll"))
+
+(defcustom org-roll-processors
+  '(("<" . (lambda (rolls) (list (seq-sort #'< rolls))))
+    (">" . (lambda (rolls) (list (seq-sort #'> rolls))))
+    ("+" . (lambda (rolls) (list rolls (apply #'+ rolls)))))
+  "Alist of roll processors.
+
+This variable is a list of pairs, its car being the string
+representing the processor, and its cdr being the function that
+processes the user’s rolls.
+
+The lambda must accept only one argument, ROLLS, which is a list
+of dice rolls."
+  :group 'org-roll
+  :type '(alist :key-type string :value-type function))
 
 (defun zp/org-roll--process-rolls (rolls processor)
   "Process ROLLS with PROCESSOR.
 ROLLS is a list; PROCESSOR is a string.
 Return either a list of rolls, or a list of the format ( rolls
 extra-info ) where extra-info contains extra information for the
-formatter."
-  (pcase processor
-    ("<"
-     (list (seq-sort #'< rolls)))
-    (">"
-     (list (seq-sort #'> rolls)))
-    ("+"
-     (list rolls
-           (apply #'+ rolls)))
-    (_
-     (error "Unrecognized processor"))))
+formatter.
+For the list of available processors, see `org-roll-processors'."
+  (let ((fn-proc (cdr (assoc-string processor org-roll-processors))))
+    (if fn-proc
+        (funcall fn-proc rolls)
+      (error "Unrecognized processor"))))
 
 (defun zp/org-roll--parse (str)
   "Parse dice-roll instructions in STR."
