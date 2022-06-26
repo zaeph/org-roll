@@ -35,7 +35,7 @@
 (require 'map)
 
 (defgroup org-roll ()
-  "Roll dice in org-mode."
+  "Roll dice in org mode."
   :group 'org
   :prefix "org-roll-"
   :link '(url-link :tag "Homepage" "https://github.com/zaeph/org-roll"))
@@ -197,6 +197,7 @@ forwards the same ARGS."
       (org-return-and-maybe-indent)
     (apply #'org-return args)))
 
+;;;###autoload
 (define-minor-mode zp/org-roll-mode
   "Allow inline processing of dice-roll instructions."
   :lighter " roll"
