@@ -76,8 +76,11 @@ For the list of available processors, see `org-roll-processors'."
           (mapcar
            (lambda (str)
              (save-match-data
-               ;; TODO; Rewrite with rx for readability
-               (string-match "\\([0-9]+\\)?d\\([0-9]+\\)\\([><+]\\)?" str)
+               (string-match (rx (group (* digit))
+                                 "d"
+                                 (group (+ digit))
+                                 (group (* any)))
+                             str)
                (let* ((name (match-string 0 str))
                       (number (if-let ((match (match-string 1 str)))
                                   (string-to-number match)
@@ -153,10 +156,16 @@ Otherwise, return nil."
             (end (cdr region)))
         (goto-char beg)
         (condition-case nil
-            ;; TODO; Rewrite with rx for readability
             (progn (re-search-forward
-                    (concat "^ *\\(\\([0-9]+\\)?d[0-9]+[<>+]?"
-                            "\\([, ]+ *\\|$\\)+\\)+$")
+                    (rx bol
+                        (* space)
+                        (+ (? (+ digit))
+                           "d"
+                           (+ digit)
+                           (* (not (any "," space)))
+                           (+ (or (+ (any "," space))
+                                  eol)))
+                        eol)
                     end)
                    (setq match? t))
           (search-failed nil))
